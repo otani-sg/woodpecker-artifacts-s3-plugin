@@ -29,7 +29,7 @@ This will download all uploaded artifacts so far for current running pipeline.
 ```yaml
 steps:  
   download:  
-    image: codenetjp/woodpecker-artifacts-s3-plugin  
+    image: ghcr.io/otani-sg/woodpecker-artifacts-s3-plugin  
     settings:  
       action: download  
       bucket: my-bucket  
