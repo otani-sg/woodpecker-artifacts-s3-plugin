@@ -9,6 +9,18 @@ import tempfile
 get_env = os.environ.get
 
 
+def format_size(size_bytes):
+    """Formats bytes into a human-readable string."""
+    if size_bytes == 0:
+        return "0B"
+    size_name = ("B", "KB", "MB", "GB", "TB")
+    import math
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+    return f"{s} {size_name[i]}"
+
+
 def parse_patterns(patterns_input):
     if not patterns_input:
         return []
@@ -120,8 +132,9 @@ def main():
                 print(f"Failed to create archive: {e}")
                 sys.exit(1)
 
+            file_size = os.path.getsize(tmp_archive.name)
             target_url = f"{remote_base.rstrip('/')}/{remote_archive_name}"
-            print(f"Uploading archive to {target_url}...")
+            print(f"Uploading archive ({format_size(file_size)}) to {target_url}...")
 
             upload_cmd = base_aws_cmd + ["cp", tmp_archive.name, target_url]
             run_result = run_command(upload_cmd, env=aws_env)
