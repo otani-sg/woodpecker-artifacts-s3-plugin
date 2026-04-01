@@ -62,9 +62,9 @@ def main():
     # Woodpecker CI Environment Variables
     repo = get_env("CI_REPO")
     pipeline_num = get_env("CI_PIPELINE_NUMBER")
-    # Use workflow number for the archive name
+    # Use workflow number for the unique archive name
     workflow_num = get_env("CI_WORKFLOW_NUMBER", "0")
-    local_archive = f"artifacts_{workflow_num}.tar.gz"
+    remote_archive_name = f"artifacts_{workflow_num}.tar.gz"
 
     # Validation: Bucket is always required to build the S3 URI
     if not bucket_name:
@@ -108,38 +108,38 @@ def main():
             print("No files found matching patterns. Skipping upload.")
             return
 
-        print(f"Creating archive {local_archive}...")
+        with tempfile.NamedTemporaryFile(suffix=".tar.gz") as tmp_archive:
+            print(f"Creating archive {remote_archive_name}...")
+            
+            try:
+                with tarfile.open(tmp_archive.name, "w:gz") as tar:
+                    for f in files_to_archive:
+                        print(f"-> Adding {f}")
+                        tar.add(f)
+            except Exception as e:
+                print(f"Failed to create archive: {e}")
+                sys.exit(1)
 
-        try:
-            with tarfile.open(local_archive, "w:gz") as tar:
-                for f in files_to_archive:
-                    print(f"-> Adding {f}")
-                    tar.add(f)
-        except Exception as e:
-            print(f"Failed to create archive: {e}")
+            target_url = f"{remote_base.rstrip('/')}/{remote_archive_name}"
+            print(f"Uploading archive to {target_url}...")
+
+            upload_cmd = base_aws_cmd + ["cp", tmp_archive.name, target_url]
+            run_result = run_command(upload_cmd, env=aws_env)
+        
+        if not run_result:
             sys.exit(1)
-
-        target_url = f"{remote_base.rstrip('/')}/{local_archive}"
-        print(f"Uploading archive to {target_url}...")
-
-        upload_cmd = base_aws_cmd + ["cp", local_archive, target_url]
-        if run_command(upload_cmd, env=aws_env):
-            print("Action 'upload' finished successfully.")
-            # Clean up local archive
-            os.remove(local_archive)
-
-            if enable_signed_url:
-                print("Generating presigned URL for artifact...")
-                presign_cmd = base_aws_cmd + ["presign", target_url, "--expires-in", str(signed_url_expires_in)]
-                try:
-                    result = subprocess.run(presign_cmd, check=True, env=aws_env, capture_output=True, text=True)
-                    print(f"Artifact Presigned URL (expires in {signed_url_expires_in}s):")
-                    print(result.stdout.strip())
-                except subprocess.CalledProcessError as e:
-                    print(f"Warning: Failed to generate presigned URL. Exit code: {e.returncode}")
-                    print(f"Stderr: {e.stderr}")
-        else:
-            sys.exit(1)
+        print("Action 'upload' finished successfully.")
+        
+        if enable_signed_url:
+            print("Generating presigned URL for artifact...")
+            presign_cmd = base_aws_cmd + ["presign", target_url, "--expires-in", str(signed_url_expires_in)]
+            try:
+                result = subprocess.run(presign_cmd, check=True, env=aws_env, capture_output=True, text=True)
+                print(f"Artifact Presigned URL (expires in {signed_url_expires_in}s):")
+                print(result.stdout.strip())
+            except subprocess.CalledProcessError as e:
+                print(f"Warning: Failed to generate presigned URL. Exit code: {e.returncode}")
+                print(f"Stderr: {e.stderr}")
 
     elif action == "download":
         print(f"-> Syncing artifacts from {remote_base}")
