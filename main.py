@@ -52,6 +52,12 @@ def main():
     secret_key = get_env("PLUGIN_SECRET_KEY")
     path_prefix = get_env("PLUGIN_PATH_PREFIX", "artifacts")
     patterns_raw = get_env("PLUGIN_PATTERNS", "")
+    enable_signed_url = str(get_env("PLUGIN_ENABLE_SIGNED_URL", "true")).lower() in ("true", "1", "yes")
+    try:
+        signed_url_expires_in = int(get_env("PLUGIN_SIGNED_URL_EXPIRES_IN", "604800"))
+    except ValueError:
+        print("Warning: Invalid PLUGIN_SIGNED_URL_EXPIRES_IN value, defaulting to 604800.")
+        signed_url_expires_in = 604800
 
     # Woodpecker CI Environment Variables
     repo = get_env("CI_REPO")
@@ -121,6 +127,17 @@ def main():
             print("Action 'upload' finished successfully.")
             # Clean up local archive
             os.remove(local_archive)
+
+            if enable_signed_url:
+                print("Generating presigned URL for artifact...")
+                presign_cmd = base_aws_cmd + ["presign", target_url, "--expires-in", str(signed_url_expires_in)]
+                try:
+                    result = subprocess.run(presign_cmd, check=True, env=aws_env, capture_output=True, text=True)
+                    print(f"Artifact Presigned URL (expires in {signed_url_expires_in}s):")
+                    print(result.stdout.strip())
+                except subprocess.CalledProcessError as e:
+                    print(f"Warning: Failed to generate presigned URL. Exit code: {e.returncode}")
+                    print(f"Stderr: {e.stderr}")
         else:
             sys.exit(1)
 
