@@ -18,7 +18,7 @@ docker run --rm --network host -v .data:/data minio/minio server /data
 
 Build the Docker image locally:
 
-docker build -t codenetjp/woodpecker-artifacts-s3-plugin .
+docker build -t woodpecker-artifacts-s3-plugin .
 
 ## **3. Testing Upload**
 
@@ -39,7 +39,7 @@ docker run --rm \
   --network host \
   -v $(pwd):$(pwd) \
   -w $(pwd) \
-  codenetjp/woodpecker-artifacts-s3-plugin
+  woodpecker-artifacts-s3-plugin
 ```
 
 ## **4. Testing Download**
@@ -59,7 +59,7 @@ docker run --rm \
   --network host \
   -v $(pwd):$(pwd) \
   -w $(pwd) \
-  codenetjp/woodpecker-artifacts-s3-plugin
+  woodpecker-artifacts-s3-plugin
 ```
 
 ## **Environment Variables Reference**
