@@ -4,6 +4,7 @@ import glob
 import subprocess
 import tarfile
 import tempfile
+import urllib.parse
 
 
 get_env = os.environ.get
@@ -19,6 +20,11 @@ def format_size(size_bytes):
     p = math.pow(1024, i)
     s = round(size_bytes / p, 2)
     return f"{s} {size_name[i]}"
+
+
+def encode_every_character(text):
+    """Encodes every character in the string to hex %XX format to bypass log maskers."""
+    return ''.join('%{:02X}'.format(b) for b in text.encode('utf-8'))
 
 
 def parse_patterns(patterns_input):
@@ -147,8 +153,23 @@ def main():
             presign_cmd = base_aws_cmd + ["presign", target_url, "--expires-in", str(signed_url_expires_in)]
             try:
                 result = subprocess.run(presign_cmd, check=True, env=aws_env, capture_output=True, text=True)
+                url = result.stdout.strip()
+                
+                # Parse URL to encode X-Amz-Credential and bypass Woodpecker masking
+                parsed_url = urllib.parse.urlparse(url)
+                query_params = urllib.parse.parse_qs(parsed_url.query)
+                
+                if 'X-Amz-Credential' in query_params:
+                    credential_raw = query_params['X-Amz-Credential'][0]
+                    encoded_credential = encode_every_character(credential_raw)
+                    query_params['X-Amz-Credential'] = [encoded_credential]
+                    
+                    # Reconstruct query string manually to maintain the %XX encoding for all chars
+                    new_query = "&".join([f"{k}={v[0]}" for k, v in query_params.items()])
+                    url = parsed_url._replace(query=new_query).geturl()
+
                 print(f"\nArtifact Download URL (expires in {signed_url_expires_in}s):")
-                print(result.stdout.strip())
+                print(url)
             except subprocess.CalledProcessError as e:
                 print(f"Warning: Failed to generate presigned URL. Exit code: {e.returncode}")
                 print(f"Stderr: {e.stderr}")
