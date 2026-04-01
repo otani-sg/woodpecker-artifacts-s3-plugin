@@ -134,7 +134,7 @@ def main():
 
             file_size = os.path.getsize(tmp_archive.name)
             target_url = f"{remote_base.rstrip('/')}/{remote_archive_name}"
-            print(f"Uploading archive ({format_size(file_size)}) to {target_url}...")
+            print(f"\nUploading archive ({format_size(file_size)}) to {target_url}...")
 
             upload_cmd = base_aws_cmd + ["cp", tmp_archive.name, target_url]
             run_result = run_command(upload_cmd, env=aws_env)
@@ -144,11 +144,10 @@ def main():
         print("Action 'upload' finished successfully.")
         
         if enable_signed_url:
-            print("Generating presigned URL for artifact...")
             presign_cmd = base_aws_cmd + ["presign", target_url, "--expires-in", str(signed_url_expires_in)]
             try:
                 result = subprocess.run(presign_cmd, check=True, env=aws_env, capture_output=True, text=True)
-                print(f"Artifact Presigned URL (expires in {signed_url_expires_in}s):")
+                print(f"\nArtifact Download URL (expires in {signed_url_expires_in}s):")
                 print(result.stdout.strip())
             except subprocess.CalledProcessError as e:
                 print(f"Warning: Failed to generate presigned URL. Exit code: {e.returncode}")
