@@ -122,7 +122,7 @@ def main():
             matched = glob.glob(pattern, recursive=True)
             files_to_archive.extend(matched)
         
-        files_to_archive = [f for f in files_to_archive if not os.path.isdir(f)]
+        files_to_archive = [f for f in files_to_archive if os.path.exists(f)]
 
         if not files_to_archive:
             print("No files found matching patterns. Skipping upload.")
