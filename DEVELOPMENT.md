@@ -42,6 +42,45 @@ docker run --rm \
   woodpecker-artifacts-s3-plugin
 ```
 
+For testing repository scope:
+
+```bash
+docker run --rm \
+  -e PLUGIN_ACTION=upload \
+  -e PLUGIN_ENDPOINT=http://localhost:9000 \
+  -e PLUGIN_REGION=us-east-1 \
+  -e PLUGIN_BUCKET=test-bucket \
+  -e PLUGIN_ACCESS_KEY=minioadmin \
+  -e PLUGIN_SECRET_KEY=minioadmin \
+  -e PLUGIN_SCOPE='repository' \
+  -e PLUGIN_PATTERNS='node_modules/**' \
+  -e PLUGIN_CACHE_KEY='cache-${CI_WORKFLOW_NUMBER}' \
+  -e CI_REPO=test_org/test_repo \
+  -e CI_WORKFLOW_NUMBER=1 \
+  --network host \
+  -v $(pwd):$(pwd) \
+  -w $(pwd) \
+  woodpecker-artifacts-s3-plugin
+```
+
+```bash
+docker run --rm \
+  -e PLUGIN_ACTION=upload \
+  -e PLUGIN_ENDPOINT=http://localhost:9000 \
+  -e PLUGIN_REGION=us-east-1 \
+  -e PLUGIN_BUCKET=test-bucket \
+  -e PLUGIN_ACCESS_KEY=minioadmin \
+  -e PLUGIN_SECRET_KEY=minioadmin \
+  -e PLUGIN_SCOPE='repository' \
+  -e PLUGIN_PATTERNS='node_modules/**' \
+  -e PLUGIN_CACHE_KEY_FILES='package-lock.json' \
+  -e CI_REPO=test_org/test_repo \
+  --network host \
+  -v $(pwd):$(pwd) \
+  -w $(pwd) \
+  woodpecker-artifacts-s3-plugin
+```
+
 ## **4. Testing Download**
 
 Run the following command to test the **download** action. This will sync the archives from the specified pipeline and extract them into your current directory.
@@ -62,6 +101,25 @@ docker run --rm \
   woodpecker-artifacts-s3-plugin
 ```
 
+Test repository scope:
+
+```bash
+docker run --rm \
+  -e PLUGIN_ACTION=download \
+  -e PLUGIN_ENDPOINT=http://localhost:9000 \
+  -e PLUGIN_REGION=us-east-1 \
+  -e PLUGIN_BUCKET=test-bucket \
+  -e PLUGIN_ACCESS_KEY=minioadmin \
+  -e PLUGIN_SECRET_KEY=minioadmin \
+  -e PLUGIN_SCOPE='repository' \
+  -e PLUGIN_CACHE_KEY_FILES='package-lock.json' \
+  -e CI_REPO=test_org/test_repo \
+  --network host \
+  -v $(pwd):$(pwd) \
+  -w $(pwd) \
+  woodpecker-artifacts-s3-plugin
+```
+
 ## **Environment Variables Reference**
 
 | Variable | Description |
@@ -70,6 +128,9 @@ docker run --rm \
 | PLUGIN_ENDPOINT | The S3 API endpoint |
 | PLUGIN_BUCKET | The target S3 bucket |
 | PLUGIN_PATTERNS | Comma-delimited list of glob patterns (upload only) |
+| PLUGIN_SCOPE | Whether artifacts should be shared between workflows of the same pipeline or across pipelines in the same repository |
+| PLUGIN_CACHE_KEY | Static file name for the artifact file |
+| PLUGIN_CACHE_KEY_FILES | Files of which content to be used to calculate the artifact file name |
 | CI_REPO | Mock repository name |
 | CI_PIPELINE_NUMBER | Mock pipeline ID |
 | CI_WORKFLOW_NUMBER | Mock step ID (used for archive naming) |
