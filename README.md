@@ -1,5 +1,7 @@
 # **woodpecker-artifacts-s3-plugin**
 
+[![Container Image Version](https://img.shields.io/badge/v0.3@sha256:a50483e51356613ee1b35f8e02077794ca64246629b45cd5410c6f13bf282546%20(attested)-green?label=ghcr.io%2Fotani-sg%2Fwoodpecker-artifacts-s3-plugin)](https://github.com/otani-sg/woodpecker-artifacts-s3-plugin/attestations/24475957)
+
 Woodpecker CI plugin to share artifacts between workflows, using S3 and compatible services.
 
 ## **Usage**
@@ -15,7 +17,7 @@ The plugin will also print a presigned link to download the artifact to woodpeck
 ```yaml
 steps:
   upload:
-    image: ghcr.io/otani-sg/woodpecker-artifacts-s3-plugin
+    image: ghcr.io/otani-sg/woodpecker-artifacts-s3-plugin:v0.3@sha256:a50483e51356613ee1b35f8e02077794ca64246629b45cd5410c6f13bf282546
     settings:
       action: upload
       bucket: my-bucket
@@ -31,7 +33,7 @@ This will download all uploaded artifacts so far for current running pipeline.
 ```yaml
 steps:
   download:
-    image: ghcr.io/otani-sg/woodpecker-artifacts-s3-plugin
+    image: ghcr.io/otani-sg/woodpecker-artifacts-s3-plugin:v0.3@sha256:a50483e51356613ee1b35f8e02077794ca64246629b45cd5410c6f13bf282546
     settings:
       action: download
       bucket: my-bucket
@@ -45,7 +47,7 @@ Use case: share build cache or dependency cache between pipelines.
 
 ```yaml
 variables:
-  - &artifact_plugin ghcr.io/otani-sg/woodpecker-artifacts-s3-plugin
+  - &artifact_plugin ghcr.io/otani-sg/woodpecker-artifacts-s3-plugin:v0.3@sha256:a50483e51356613ee1b35f8e02077794ca64246629b45cd5410c6f13bf282546
   - &artifact_plugin_base
     bucket: my-bucket
     access_key: { from_secret: s3_access_key }
