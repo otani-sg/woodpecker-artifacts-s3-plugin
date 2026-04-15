@@ -159,7 +159,7 @@ def main():
     # Construct the remote path
     if scope == Scope.REPOSITORY:
         remote_base = (
-            f"s3://{bucket_name}/{path_prefix.strip('/')}/{repo.strip('/')}/cache/"
+            f"s3://{bucket_name}/{path_prefix.strip('/')}/{repo.strip('/')}/shared/"
         )
         remote_archive_name = f"{cache_id}.tar.gz"
     else:
