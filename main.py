@@ -164,7 +164,7 @@ def main():
         remote_archive_name = f"{cache_id}.tar.gz"
     else:
         remote_base = f"s3://{bucket_name}/{path_prefix.strip('/')}/{repo.strip('/')}/pipelines/{pipeline_num}/"
-        remote_archive_name = f"artifacts_{workflow_num}.tar.gz"
+        remote_archive_name = f"artifacts_{pipeline_num}_{workflow_num}.tar.gz"
 
     # Setup AWS Environment for the CLI only if keys are provided
     aws_env = os.environ.copy()
